@@ -1,7 +1,7 @@
 const { Browser, Builder, By, Key, until, WebDriver, WebElement } = require('selenium-webdriver');
 const chromedriver = require('chromedriver');
 const { it, describe } = require('mocha');
-const { expect } = require('chai');
+const { expect, assert } = require('chai');
 const password = 'secret_sauce';
 const users = [
   'standard_user',
@@ -33,7 +33,10 @@ const initialize = async (browserType) => {
  */
 const openMenu = async (driver) => {
   const openMenuBtn = await driver.findElement(By.id('react-burger-menu-btn'));
+  const closeMenuBtn = await driver.findElement(By.id('react-burger-cross-btn'));
   await openMenuBtn.click();
+  await driver.wait(until.elementIsVisible(closeMenuBtn), 500);
+  
 }
 /**
  * Closes the menu, waiting for the element to be visible to prevent errors.
@@ -43,18 +46,6 @@ const closeMenu = async (driver) => {
   const closeMenuBtn = await driver.findElement(By.id('react-burger-cross-btn'));
   await driver.wait(until.elementIsVisible(closeMenuBtn), 500);
   await closeMenuBtn.click();
-}
-/**
- * Determines if the menu is open, returns the promise of a boolean indicating the status.
- * @param {WebDriver} driver 
- * @returns {Promise<boolean>} Promise of boolean indicating wether or not the menu is open
- */
-const menuIsOpen = async (driver) => {
-  const menu = await driver.findElement(By.className('bm-menu-wrap'));
-  const ariaHidden = await menu.getAttribute('aria-hidden');
-  expect(ariaHidden).equals('true');
-  console.log('ariaHidden:', ariaHidden);
-  return ariaHidden === 'true' ? true : false;
 }
 const menuLinkIds = [
   'inventory_sidebar_link',
@@ -72,16 +63,12 @@ const menuLinkIds = [
   menuLinks.push(cartLink);
   /**
    * Wraps the button or link in a function that ensures it's clickable,
-   * if it's not it will open the menu and wait for it to be clickable. 
+   * if it's not it will wait for it to be clickable. 
    * @param {WebElement} link
    */
   const ensureClickableFactory = (link) => {
     return async () => {
-      const menuOpen = await menuIsOpen(driver);
-      if(menuOpen === false) {
-        await openMenu(driver);
-      }
-      await driver.wait(until.elementIsVisible(link), 1000);
+      await driver.wait(until.elementIsEnabled(link), 1000);
       await link.click();
     }
   }
@@ -236,19 +223,11 @@ describe('basic menu functionality', async () => {
     await clickShoppingCartLink();
     const { verifyAtShoppingCart } = getPageArrivalVerifications(driver);
     await verifyAtShoppingCart();
-    await closeMenu(driver);
   })
   it('navigates to the product page', async () => {
     const { clickInventoryLink } = await getAllMenuItemClicks(driver);
-    console.log('menu is open?', await menuIsOpen(driver));
-    await maybeSleep(driver, 5000);
     await openMenu(driver);
-    await maybeSleep(driver);
-    const product = await driver.findElement(By.id('inventory_sidebar_link'));
-    await driver.wait(until.elementIsVisible(product), 1000);
-    await product.click();
-    // await clickInventoryLink();
-    // await maybeSleep(driver, 2000)
+    await clickInventoryLink();
     const { verifyAtProductPage } = getPageArrivalVerifications(driver);
     await verifyAtProductPage();
   })
@@ -265,22 +244,60 @@ const buttonIds = [
   'sauce-labs-backpack',
   'sauce-labs-bike-light',
   'sauce-labs-bolt-t-shirt',
-  'sauce-labs-fleece-backpack',
+  'sauce-labs-fleece-jacket',
   'sauce-labs-onesie',
-  'test.allthethings()-t-shirt',
+  'test.allthethings()-t-shirt-(red)',
 ]
 describe('product page functionality', async () => {
-  const driver = await initialize(Browser.CHROME);
-  it('adds items to the shopping cart', async () => {
-    let success = [];
-    try {
-      await loginAttempt('standard_user', password, driver);
-      const success = await loginSuccess(driver);
-      expect(success.length).greaterThan(0);
-    } finally {
-      await driver.quit();
-    }
+  /** @type {WebDriver} */let driver = null;
+  /** @type {WebElement[]} */let addToCartButtons = null;
+  /** @type {WebElement[]} */let removeFromCartButtons = [];
+  before(async () => {
+    // Initialize and login
+    driver = await initialize(Browser.CHROME);
+    await loginAttempt('standard_user', password, driver);
+    const loggedIn = await loginSuccess(driver);
+    expect(loggedIn.length).greaterThan(0);
+    addToCartButtons = await Promise.all(
+      buttonIds.map(
+        async (buttonId) => await driver.findElement(By.id(`${addToCartPrefix}${buttonId}`))
+      ));
   })
+  buttonIds.forEach((buttonId, index) => {
+    it(`adds item ${buttonId} to the shopping cart`, async () => {
+      await addToCartButtons[index].click();
+      await driver.sleep(500);
+    });
+    it(`changes the add item button to a remove button for the ${buttonId}`, async () => {
+      const removeBtn = await driver.findElement(By.id(`${removeFromtCartPrefix}${buttonId}`));
+      removeFromCartButtons.push(removeBtn);
+    });
+    it(`increments the shopping cart item counter to ${index+1}`, async () => {
+      const cartCounter = await driver.findElement(By.className('shopping_cart_badge')).getText();
+      expect(Number(cartCounter)).equals(index+1);
+    });
+  });
+  buttonIds.forEach((buttonId, index) => {
+    it(`removes ${buttonId} from the shopping cart`, async () => {
+      await removeFromCartButtons.shift().click();
+    });
+    it(`changes the ${buttonId} remove button back to an add to cart button`, async () => {
+      const addBtn = await driver.findElement(By.id(`${addToCartPrefix}${buttonId}`));
+      await driver.wait(until.elementIsVisible(addBtn), 500);
+    });
+    it(`decrements the shopping cart item counter to ${buttonIds.length - (index + 1)}`, async () => {
+      const [cartCounter] = await driver.findElements(By.className('shopping_cart_badge'));
+      
+      if((index) === buttonIds.length - 1) {
+        expect(cartCounter).equal(undefined);
+      } else {
+        const count = await cartCounter.getText();
+        expect(Number(count)).equals(buttonIds.length - (index + 1));
+      }
+      
+    });
+  })
+  
   after(async () => {
     await driver.quit();
   })
