@@ -5,13 +5,17 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "type": "pwa-node",
-      "request": "attach",
-      "name": "attach",
+      "type": "node",
+      "request": "launch",
+      "name": "launch",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "run-script", "test"
+    ],
       "skipFiles": [
         "<node_internals>/**"
       ],
-      "program": "${workspaceFolder}/src/index.js"
+      "program": "${workspaceFolder}/src/index.js",
     }
   ]
 }
