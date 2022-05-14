@@ -5,6 +5,7 @@
   "main": "src/index.js",
   "scripts": {
     "test": "mocha src/*.js --inspect --reporter spec",
+    "test_cart": "mocha src/*.js --inspect --reporter spec 'shopping cart page functionality'",
     "start": "node src/index.js",
     "find": "sudo ps aux | grep -i chromedriver"
   },
