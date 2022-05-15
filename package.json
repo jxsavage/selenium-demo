@@ -4,8 +4,11 @@
   "description": "",
   "main": "src/index.js",
   "scripts": {
-    "test": "mocha src/*.js --inspect --reporter spec",
-    "test_cart": "mocha src/*.js --inspect --reporter spec 'shopping cart page functionality'",
+    "test": "mocha src/*.test.js --inspect --reporter spec",
+    "test:product-page": "mocha src/productPage.test.js --inspect --reporter spec",
+    "test:login": "mocha src/login.test.js --inspect --reporter spec",
+    "test:cart": "mocha src/shoppingCart.test.js --inspect --reporter spec",
+    "test:menu": "mocha src/menu.test.js --inspect --reporter spec",
     "start": "node src/index.js",
     "find": "sudo ps aux | grep -i chromedriver"
   },
