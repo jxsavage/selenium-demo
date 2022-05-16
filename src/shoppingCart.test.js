@@ -21,8 +21,7 @@ describe('shopping cart page functionality', () => {
     // Initialize and login
     driver = await initialize(Browser.CHROME);
     await loginAttempt(standardUser, password, driver);
-    const loggedIn = await loginSuccess(driver);
-    expect(loggedIn.length).greaterThan(0);
+    await loginSuccess(driver);
     const priceElements = await driver.wait(until.elementsLocated(By.className('inventory_item_price')), 500);
     /** @type {number[]} */productPagePrices = await Promise.all(
       priceElements.map(async (PriceEle) => {
@@ -36,7 +35,6 @@ describe('shopping cart page functionality', () => {
 
     it(`adds item ${buttonId} to the shopping cart page after being added from the product page`,
     async () => {
-      await driver.sleep(500);
       /** @type {WebElement[]} */const addToCartButtons = await Promise.all(
         productAttribute.buttonIds.map(
           async (buttonId, index) => {
@@ -50,14 +48,12 @@ describe('shopping cart page functionality', () => {
         By.className('inventory_item_name'),
       );
       await driver.wait(until.elementIsVisible(cartElements), 500);
-      await driver.sleep(500);
     });
     it(`adds the right product: ${buttonId}`, async () => {
       await driver.wait(
         until.elementLocated(By.id(
           `${productAttribute.removeFromCartPrefix}${buttonId}`)), 500,
       );
-      await driver.sleep(500);
     });
     it(`${buttonId} has the correct quantity of 1`,
     async () => {
@@ -87,7 +83,6 @@ describe('shopping cart page functionality', () => {
       );
       expect(cartQuantityElements.length).equals(0);
       await driver.navigate().back();
-      await driver.sleep(500);
     });
   })
 

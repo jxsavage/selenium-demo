@@ -7,7 +7,7 @@
     {
       "type": "node",
       "request": "launch",
-      "name": "launch",
+      "name": "testAll",
       "runtimeExecutable": "npm",
       "runtimeArgs": [
         "run-script", "test"
@@ -15,7 +15,18 @@
       "skipFiles": [
         "<node_internals>/**"
       ],
-      "program": "${workspaceFolder}/src/index.js",
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "testProductPage",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "run-script", "test:product-page"
+    ],
+      "skipFiles": [
+        "<node_internals>/**"
+      ],
     }
   ]
 }

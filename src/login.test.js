@@ -1,7 +1,8 @@
 const chromedriver = require('chromedriver');
-const { expect } = require('chai');
-const { By } = require('selenium-webdriver');
-const { Browser } = require('selenium-webdriver');
+const { By, Browser } = require('selenium-webdriver');
+const { expect, use } = require('chai');
+var chaiAsPromised = require("chai-as-promised");
+use(chaiAsPromised);
 const {
   initialize, loginSuccess,
   maybeSleep, loginAttempt, users
@@ -16,11 +17,9 @@ module.exports = describe(
   'logging in as a standard user and locked out user', () => {
   it('lets the user proceed to the shop', async () => {
     const driver = await initialize(Browser.CHROME);
-    let success = [];
     try {
       await loginAttempt(standardUser, password, driver);
-      const success = await loginSuccess(driver);
-      expect(success.length).greaterThan(0);
+      await loginSuccess(driver);
     } finally {
       await driver.quit();
     }
@@ -29,9 +28,7 @@ module.exports = describe(
     const driver = await initialize(Browser.CHROME);
     try {
       await loginAttempt(lockedUser, password, driver);
-      const success = await loginSuccess(driver);
-      expect(success.length).lessThan(1);
-      await maybeSleep(driver);
+      await expect(loginSuccess(driver)).to.be.rejected;
     } finally {
       await driver.quit();
     }

@@ -21,8 +21,7 @@ describe('basic menu functionality', async () => {
     // Initialize and login
     driver = await initialize(Browser.CHROME);
     await loginAttempt(standardUser, password, driver);
-    const loggedIn = await loginSuccess(driver);
-    expect(loggedIn.length).greaterThan(0);
+    await loginSuccess(driver);
     menu = await driver.findElement(By.className('bm-menu-wrap'));
   })
   it('is hidden before the menu button is clicked', async () => {

@@ -122,17 +122,89 @@ const loginAttempt = async (user, password, driver) => {
 }
 /**
  * Checks for valid login by searching for an inventory container.
- * @param {WebDriver} driver 
- * @returns {Promise<WebElement[]>} elements
+ * @param {WebDriver} driver
  */
 const loginSuccess = async (driver) => {
-  const loginSuccess = driver.findElements(By.id('inventory_container'));
-  await driver.wait(loginSuccess, 1000);
-  await maybeSleep(driver);
-  return loginSuccess;
+  await driver.wait(until.elementLocated(By.id('inventory_container')), 1000);
+}
+const addToCartPrefix = 'add-to-cart-';
+const removeFromCartPrefix = 'remove-';
+/**
+ * 
+ * @param {WebElement} productBtn
+ */
+const productBtnToId = async (productBtn) => {
+  const btnId = await productBtn.getAttribute('id');
+  const [, add, remove, productString] = /^(?:(add-to-cart-)|(remove-))(\S+)/.exec(btnId);
+  const canAdd = add ? true : false;
+  const canRemove = remove ? true : false;
+  const addBtnId = canAdd ? btnId : `${addToCartPrefix}${productString}`;
+  const removeBtnId = canRemove ? btnId : `${removeFromCartPrefix}${productString}`;
+  return {
+    canAdd,
+    canRemove,
+    addBtnId,
+    removeBtnId,
+    btnId: btnId,
+    productName: productString,
+  }
+}
+/**
+ * Get the price as a number from the element on the product page.
+ * @param {WebElement} priceEle 
+ * @returns {Promise<number>} price
+ */
+const priceEleToNumber = async (priceEle) => {
+  const priceTxt = await priceEle.getText();
+  return Number(priceTxt.replace(/\$/g, ""));
 }
 
+/**
+ * Get productId, BtnId, Btn, price, and can add can remove status.
+ * @param {WebElement} productEle product page product element.
+ */
+const getProductPropsFromEle = async (productEle) => {
 
+  const [priceEle, productBtn] = await Promise.all([
+    await productEle.findElement(By.className('inventory_item_price')),
+    await productEle.findElement(By.className('btn_inventory')),
+  ]);
+  const [price, btnProps] = await Promise.all([
+    await priceEleToNumber(priceEle),
+    await productBtnToId(productBtn),
+  ]);
+  return {...btnProps, price, productBtn}
+}
+//** @typedef {{ price: number, productBtn: WebElement, addBtnId: string, removeBtnId: string, btnId: string, productName: string, canAdd: boolean, canRemove: boolean}[]} ProductProperties */
+/**
+ * 
+ * @param {WebDriver} driver 
+ * returns {Promise<ProductProperties>}
+ */
+const getProductPageIventoryProps = async (driver) => {
+  const productEles = await driver.wait(until.elementsLocated(
+    By.className('inventory_item'),
+  ));
+
+  //** @type {ProductProperties} */
+  const propsArray = await Promise.all(productEles.map(
+    async (element) => {
+    const props = await getProductPropsFromEle(element);
+    return props;
+  }));
+  return propsArray;
+}
+const getCartCounter = async (driver) => {
+  const [cartCounter] = await driver.findElements(
+    By.className('shopping_cart_badge'),
+  );
+  let count = 0;
+  if (cartCounter) {
+    const countTxt = await cartCounter.getText();
+    count = Number(countTxt);
+  }
+  return count;
+}
 const users = {
   password: 'secret_sauce',
   ProblemUser: 'problem_user',
@@ -140,8 +212,7 @@ const users = {
   lockedUser: 'locked_out_user',
   PerformanceGlitchUser: 'performance_glitch_user',
 }
-const addToCartPrefix = 'add-to-cart-';
-const removeFromCartPrefix = 'remove-';
+
 const buttonIds = [
   'sauce-labs-backpack',
   'sauce-labs-bike-light',
@@ -150,21 +221,74 @@ const buttonIds = [
   'sauce-labs-onesie',
   'test.allthethings()-t-shirt-(red)',
 ];
+
+const productBtnIds = buttonIds
+  .reduce((addBtns, id) => {
+    const add = `${addToCartPrefix}${id}`;
+    const remove = `${removeFromCartPrefix}${id}`
+    addBtns.add[add] = add;
+    addBtns.remove[remove] = remove;
+    return addBtns;
+}, {add: {}, remove: {}});
 const productAttribute = {
   buttonIds,
   addToCartPrefix,
   removeFromCartPrefix,
 }
+/**
+ * Gets the add to cart buttons on the product page
+ * @param {WebDriver} driver 
+ * @returns {Promise<WebElement[]>}
+ */
+const getAllAddToCartBtns = async (driver) => {
+  return await Promise.all(
+    Object.values(productBtnIds.add).map(
+      async (addBtnId) => {
+        const [btnEle] = await driver.findElements(
+          By.id(addBtnId),
+        );
+        return btnEle;
+  }));
+};
+/**
+ * Gets the add to cart buttons on the product and cart page
+ * @param {WebDriver} driver 
+ * @returns {Promise<WebElement[]>}
+ */
+const getAllRemoveFromCartBtns = async (driver) => {
+  return await Promise.all(
+    Object.values(productBtnIds.remove).map(
+      async (removeBtnId) => {
+        const [btnEle] = await driver.findElements(
+          By.id(removeBtnId),
+        );
+        return btnEle;
+  }));
+};
+const getBtns = {
+  page: {
+    product: {
+      add: getAllAddToCartBtns,
+      remove: getAllRemoveFromCartBtns
+    },
+  cart: {
+    remove: getAllRemoveFromCartBtns
+  }
+  },
 
+}
 module.exports = {
   users,
+  getBtns,
   openMenu,
   closeMenu,
   initialize,
   maybeSleep,
   loginAttempt,
   loginSuccess,
+  productBtnIds,
   productAttribute,
   getAllMenuItemClicks,
+  getProductPageIventoryProps,
   getPageArrivalVerifications,
 }
