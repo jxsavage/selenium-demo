@@ -6,7 +6,7 @@ const {
 const { Browser } = require('selenium-webdriver');
 const {
   initialize, loginSuccess, productAttribute,
-  loginAttempt, getAllMenuItemClicks, users,
+  loginAttempt, getAllMenuItemClicks, users, productPageProps,
 } = require('./utils');
 const {
   password, standardUser
@@ -31,12 +31,12 @@ describe('shopping cart page functionality', () => {
       })
     );
   })
-  productAttribute.buttonIds.forEach((buttonId, index) => {
+  productPageProps.buttonIdBases.forEach((buttonId, index) => {
 
     it(`adds item ${buttonId} to the shopping cart page after being added from the product page`,
     async () => {
       /** @type {WebElement[]} */const addToCartButtons = await Promise.all(
-        productAttribute.buttonIds.map(
+        productPageProps.buttonIdBases.map(
           async (buttonId, index) => {
             return await driver.wait(until.elementLocated(By.id(`${productAttribute.addToCartPrefix}${buttonId}`)), 500)
           }

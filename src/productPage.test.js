@@ -44,7 +44,6 @@ describe('product page functionality', () => {
         return product.productName === productName;
       });
       currentAddBtn = currentProduct.productBtn;
-      console.log(`test 1 case ${index}`);
       await currentAddBtn.click();
     });
     it(`changes the add item button to a remove button for the ${productName}`,
