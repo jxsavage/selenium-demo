@@ -8,7 +8,7 @@ var chaiAsPromised = require("chai-as-promised");
 use(chaiAsPromised);
 const {
   initialize, loginSuccess,
-  loginAttempt, users, productAttribute, getBtns, maybeSleep, getProductPageIventoryProps
+  loginAttempt, users, productAttribute, getBtns, maybeSleep, getProductPageIventoryProps, productPageProps
 } = require('./utils');
 const {
   password, standardUser
@@ -19,20 +19,13 @@ const {
 describe('product page functionality', () => {
   /** @type {WebDriver} */let driver = null;
   // /** @type {WebElement[]} */let addToCartButtons = null;
-  /** type {import('./utils').ProductProperties} */ let inventoryProps = [];
+  /** @type {import('./utils').ProductProperties} */ let inventoryProps = [];
   before(async () => {
     // Initialize and login
     driver = await initialize(Browser.CHROME);
     await loginAttempt(standardUser, password, driver);
     await loginSuccess(driver);
-    // addToCartButtons = await getBtns.page.product.add(driver);
-    const invProps = await getProductPageIventoryProps(driver);
-    inventoryProps = invProps;
-    // await Promise.all(
-    //   productAttribute.buttonIds.map(
-    //     async (buttonId) => await driver.findElement(
-    //       By.id(`${productAttribute.addToCartPrefix}${buttonId}`,
-    // ))),
+    inventoryProps = await productPageProps.get(driver);
   });
   it('has no counter on the shopping cart before items are added', async () => {
     const [cartCounter] = await driver.findElements(
@@ -40,49 +33,61 @@ describe('product page functionality', () => {
     );
     expect(cartCounter).equals(undefined);
   });
-  inventoryProps.forEach((props, index) => {
-    const {
-      productBtn, productName, removeBtnId
-    } = props;
+  const removeBtns = {};
+  let currentProduct = null;
+  let currentAddBtn = null;
+  productPageProps.buttonIdBases.forEach((productName, index) => {
+    
+    
     it(`adds item ${productName} to the shopping cart`, async () => {
-      await productBtn.click();
+      currentProduct = inventoryProps.find((product) => {
+        return product.productName === productName;
+      });
+      currentAddBtn = currentProduct.productBtn;
+      console.log(`test 1 case ${index}`);
+      await currentAddBtn.click();
     });
-    it(`changes the add item button to a remove button for the ${productName}`, async () => {
-      const removeBtn = await driver.findElement(By.id(removeBtnId));
-      props.productBtn = removeBtn;
+    it(`changes the add item button to a remove button for the ${productName}`,
+    async () => {
+      removeBtns[productName] = await driver.wait(
+        until.elementLocated(By.id(currentProduct.removeBtnId)),
+          500);
     });
-    it(`increments the shopping cart item counter to ${index+1}`, async () => {
-      const cartCounter = await driver.findElement(
-        By.className('shopping_cart_badge'),
-      ).getText();
+    it(`increments the shopping cart item counter to ${index+1}`,
+    async () => {
+      const cartCounter = await driver.wait(
+       until.elementLocated(By.className('shopping_cart_badge')),
+        500).getText();
       expect(Number(cartCounter)).equals(index+1);
     });
   });
-  inventoryProps.forEach((props, index) => {
-    const {
-      productBtn, productName, addBtnId
-    } = props;
-    it(`removes ${productName} from the shopping cart`, async () => {
-      await productBtn.click();
+  productPageProps.buttonIdBases.forEach((productName, index) => {
+    
+    it(`removes ${productName} from the shopping cart`,
+    async () => {
+      currentProduct = inventoryProps.find((product) => {
+        return product.productName === productName;
+      });
+      await removeBtns[productName].click();
     });
-    it(`changes the ${productName} remove button back to an add to cart button`, async () => {
-      await driver.wait(until.elementLocated(By.id(addBtnId)), 500);
+    it(`changes the ${productName} remove button back to an add to cart button`,
+    async () => {
+      await driver.wait(until.elementLocated(By.id(currentProduct.addBtnId)), 500);
     });
-    it(`decrements the shopping cart item counter to ${productAttribute.buttonIds.length - (index + 1)}`,
-      async () => {
-        const [cartCounter] = await driver.findElements(
-          By.className('shopping_cart_badge'),
-        );
-        if((index) === productAttribute.buttonIds.length - 1) {
-          expect(cartCounter).equal(undefined);
-        } else {
-          const count = await cartCounter.getText();
-          expect(Number(count))
-              .equals(
-                productAttribute.buttonIds.length - (index + 1),
-          );
-    }});
-  })
+    it(`decrements the shopping cart item counter to ${productPageProps.buttonIdBases.length - (index + 1)}`,
+    async () => {
+      const [cartCounter] = await driver.findElements(
+        By.className('shopping_cart_badge'),
+      );
+      if((index) === productPageProps.buttonIdBases.length - 1) {
+        expect(cartCounter).equal(undefined);
+      } else {
+        const count = await cartCounter.getText();
+        expect(Number(count))
+            .equals(productPageProps.buttonIdBases.length - (index + 1));
+      }
+    });
+  });
   after(async () => {
     await driver.quit();
   });

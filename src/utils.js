@@ -175,7 +175,7 @@ const getProductPropsFromEle = async (productEle) => {
   ]);
   return {...btnProps, price, productBtn}
 }
-//** @typedef {{ price: number, productBtn: WebElement, addBtnId: string, removeBtnId: string, btnId: string, productName: string, canAdd: boolean, canRemove: boolean}[]} ProductProperties */
+/** @typedef {{ price: number, productBtn: WebElement, addBtnId: string, removeBtnId: string, btnId: string, productName: string, canAdd: boolean, canRemove: boolean}[]} ProductProperties */
 /**
  * 
  * @param {WebDriver} driver 
@@ -213,7 +213,7 @@ const users = {
   PerformanceGlitchUser: 'performance_glitch_user',
 }
 
-const buttonIds = [
+const buttonIdBases = [
   'sauce-labs-backpack',
   'sauce-labs-bike-light',
   'sauce-labs-bolt-t-shirt',
@@ -222,7 +222,7 @@ const buttonIds = [
   'test.allthethings()-t-shirt-(red)',
 ];
 
-const productBtnIds = buttonIds
+const productBtnIds = buttonIdBases
   .reduce((addBtns, id) => {
     const add = `${addToCartPrefix}${id}`;
     const remove = `${removeFromCartPrefix}${id}`
@@ -231,7 +231,7 @@ const productBtnIds = buttonIds
     return addBtns;
 }, {add: {}, remove: {}});
 const productAttribute = {
-  buttonIds,
+  buttonIdBases,
   addToCartPrefix,
   removeFromCartPrefix,
 }
@@ -275,7 +275,10 @@ const getBtns = {
     remove: getAllRemoveFromCartBtns
   }
   },
-
+}
+const productPageProps = {
+  buttonIdBases,
+  get: getProductPageIventoryProps,
 }
 module.exports = {
   users,
@@ -287,6 +290,7 @@ module.exports = {
   loginAttempt,
   loginSuccess,
   productBtnIds,
+  productPageProps,
   productAttribute,
   getAllMenuItemClicks,
   getProductPageIventoryProps,
