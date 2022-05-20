@@ -3,12 +3,12 @@ const { expect } = require('chai');
 const { By, WebDriver, WebElement } = require('selenium-webdriver');
 const { Browser } = require('selenium-webdriver');
 const {
-  initialize, loginSuccess, openMenu,
+  initializeDriver, loginSuccess, openMenu,
   loginAttempt, closeMenu, getAllMenuItemClicks,
-  getPageArrivalVerifications, users
+  getPageArrivalVerifications, users, password
 } = require('./utils');
 const {
-  password, standardUser
+  standardUser
 } = users;
 
 /*
@@ -19,7 +19,7 @@ describe('basic menu functionality', async () => {
   /** @type {WebElement} */let menu = null;
   before(async () => {
     // Initialize and login
-    driver = await initialize(Browser.CHROME);
+    driver = await initializeDriver(Browser.CHROME);
     await loginAttempt(standardUser, password, driver);
     await loginSuccess(driver);
     menu = await driver.findElement(By.className('bm-menu-wrap'));

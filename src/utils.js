@@ -2,6 +2,9 @@ const {
   WebElement, WebDriver, Browser, Builder, By, until, Key,
 } = require("selenium-webdriver");
 const { Options } = require("selenium-webdriver/chrome");
+const {
+  password, users, testProductData, parseProductBtnId,
+} = require("./testData");
 
 
 /**
@@ -18,7 +21,7 @@ const maybeSleep = async (driver, timeOverride) => {
  * Initializes browser
  * @param {typeof Browser.CHROME} browserType 
  */
-const initialize = async (browserType) => {
+const initializeDriver = async (browserType) => {
   const options = new Options();
   // Needed to supress errors in Windows that are irrelevant.
   options.excludeSwitches('enable-logging');
@@ -127,27 +130,16 @@ const loginAttempt = async (user, password, driver) => {
 const loginSuccess = async (driver) => {
   await driver.wait(until.elementLocated(By.id('inventory_container')), 1000);
 }
-const addToCartPrefix = 'add-to-cart-';
-const removeFromCartPrefix = 'remove-';
+
 /**
- * 
+ * Given a product button element gets its id and returns
+ * the wether it can add or remove a product,
+ * its original id and the base of its id.
  * @param {WebElement} productBtn
  */
 const productBtnToId = async (productBtn) => {
   const btnId = await productBtn.getAttribute('id');
-  const [, add, remove, productString] = /^(?:(add-to-cart-)|(remove-))(\S+)/.exec(btnId);
-  const canAdd = add ? true : false;
-  const canRemove = remove ? true : false;
-  const addBtnId = canAdd ? btnId : `${addToCartPrefix}${productString}`;
-  const removeBtnId = canRemove ? btnId : `${removeFromCartPrefix}${productString}`;
-  return {
-    canAdd,
-    canRemove,
-    addBtnId,
-    removeBtnId,
-    btnId: btnId,
-    productName: productString,
-  }
+  return parseProductBtnId(btnId);
 }
 /**
  * Get the price as a number from the element on the product page.
@@ -175,7 +167,7 @@ const getProductPropsFromEle = async (productEle) => {
   ]);
   return {...btnProps, price, productBtn}
 }
-/** @typedef {{ price: number, productBtn: WebElement, addBtnId: string, removeBtnId: string, btnId: string, productName: string, canAdd: boolean, canRemove: boolean}[]} ProductProperties */
+//** @typedef {{ price: number, productBtn: WebElement, addBtnId: string, removeBtnId: string, btnId: string, productName: string, canAdd: boolean, canRemove: boolean}[]} ProductProperties */
 /**
  * 
  * @param {WebDriver} driver 
@@ -205,36 +197,6 @@ const getCartCounter = async (driver) => {
   }
   return count;
 }
-const users = {
-  password: 'secret_sauce',
-  ProblemUser: 'problem_user',
-  standardUser: 'standard_user',
-  lockedUser: 'locked_out_user',
-  PerformanceGlitchUser: 'performance_glitch_user',
-}
-
-const buttonIdBases = [
-  'sauce-labs-backpack',
-  'sauce-labs-bike-light',
-  'sauce-labs-bolt-t-shirt',
-  'sauce-labs-fleece-jacket',
-  'sauce-labs-onesie',
-  'test.allthethings()-t-shirt-(red)',
-];
-
-const productBtnIds = buttonIdBases
-  .reduce((addBtns, id) => {
-    const add = `${addToCartPrefix}${id}`;
-    const remove = `${removeFromCartPrefix}${id}`
-    addBtns.add[add] = add;
-    addBtns.remove[remove] = remove;
-    return addBtns;
-}, {add: {}, remove: {}});
-const productAttribute = {
-  buttonIdBases,
-  addToCartPrefix,
-  removeFromCartPrefix,
-}
 /**
  * Gets the add to cart buttons on the product page
  * @param {WebDriver} driver 
@@ -242,7 +204,7 @@ const productAttribute = {
  */
 const getAllAddToCartBtns = async (driver) => {
   return await Promise.all(
-    Object.values(productBtnIds.add).map(
+    testProductData.addIdArray.map(
       async (addBtnId) => {
         const [btnEle] = await driver.findElements(
           By.id(addBtnId),
@@ -257,7 +219,7 @@ const getAllAddToCartBtns = async (driver) => {
  */
 const getAllRemoveFromCartBtns = async (driver) => {
   return await Promise.all(
-    Object.values(productBtnIds.remove).map(
+    testProductData.removeIdArray.map(
       async (removeBtnId) => {
         const [btnEle] = await driver.findElements(
           By.id(removeBtnId),
@@ -276,22 +238,16 @@ const getBtns = {
   }
   },
 }
-const productPageProps = {
-  buttonIdBases,
-  get: getProductPageIventoryProps,
-}
 module.exports = {
   users,
+  password,
   getBtns,
   openMenu,
   closeMenu,
-  initialize,
   maybeSleep,
   loginAttempt,
   loginSuccess,
-  productBtnIds,
-  productPageProps,
-  productAttribute,
+  initializeDriver,
   getAllMenuItemClicks,
   getProductPageIventoryProps,
   getPageArrivalVerifications,

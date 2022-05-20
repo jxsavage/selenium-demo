@@ -4,11 +4,11 @@ const { expect, use } = require('chai');
 var chaiAsPromised = require("chai-as-promised");
 use(chaiAsPromised);
 const {
-  initialize, loginSuccess,
-  maybeSleep, loginAttempt, users
+  initializeDriver, loginSuccess,
+  maybeSleep, loginAttempt, users, password,
 } = require('./utils');
 const {
-  password, standardUser, lockedUser
+  standardUser, lockedUser
 } = users;
 /*
 * BASIC LOGIN/LOCKOUT TEST
@@ -16,7 +16,7 @@ const {
 module.exports = describe(
   'logging in as a standard user and locked out user', () => {
   it('lets the user proceed to the shop', async () => {
-    const driver = await initialize(Browser.CHROME);
+    const driver = await initializeDriver(Browser.CHROME);
     try {
       await loginAttempt(standardUser, password, driver);
       await loginSuccess(driver);
@@ -25,7 +25,7 @@ module.exports = describe(
     }
   });
   it('does not allow the user to proceed to the shop', async () => {
-    const driver = await initialize(Browser.CHROME);
+    const driver = await initializeDriver(Browser.CHROME);
     try {
       await loginAttempt(lockedUser, password, driver);
       await expect(loginSuccess(driver)).to.be.rejected;
@@ -34,7 +34,7 @@ module.exports = describe(
     }
   });
   it('shows a message indicating the user is locked out', async () => {
-    const driver = await initialize(Browser.CHROME);
+    const driver = await initializeDriver(Browser.CHROME);
     try {
       await loginAttempt(lockedUser, password, driver);
       const failure = await driver.findElements(By.className('error-message-container error'));

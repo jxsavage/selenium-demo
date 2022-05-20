@@ -27,6 +27,18 @@
       "skipFiles": [
         "<node_internals>/**"
       ],
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "testLogin",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "run-script", "test:login"
+    ],
+      "skipFiles": [
+        "<node_internals>/**"
+      ],
     }
   ]
 }
