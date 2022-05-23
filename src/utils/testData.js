@@ -5,14 +5,6 @@ const users = {
   lockedUser: 'locked_out_user',
   PerformanceGlitchUser: 'performance_glitch_user',
 }
-const buttonIdBases = [
-  'sauce-labs-backpack',
-  'sauce-labs-bike-light',
-  'sauce-labs-bolt-t-shirt',
-  'sauce-labs-fleece-jacket',
-  'sauce-labs-onesie',
-  'test.allthethings()-t-shirt-(red)',
-];
 // If these change, change the regex below.
 const addToCartPrefix = 'add-to-cart-';
 const removeFromCartPrefix = 'remove-';

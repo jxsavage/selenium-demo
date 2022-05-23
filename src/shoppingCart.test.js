@@ -5,13 +5,9 @@ const {
 } = require('selenium-webdriver');
 const { Browser } = require('selenium-webdriver');
 const {
-  initializeDriver, loginSuccess,
-  loginAttempt, getAllMenuItemClicks, users,
+  initializeDriver, userLogins,
+  getAllMenuItemClicks, testProductData,
 } = require('./utils');
-const { testProductData, password } = require('./testData');
-const {
-  standardUser
-} = users;
 /*
 * SHOPPING CART PAGE TESTS
 */
@@ -21,8 +17,7 @@ describe('shopping cart page functionality', () => {
   before(async () => {
     // Initialize and login
     driver = await initializeDriver(Browser.CHROME);
-    await loginAttempt(standardUser, password, driver);
-    await loginSuccess(driver);
+    await userLogins.standard(driver);
     const priceElements = await driver.wait(until.elementsLocated(By.className('inventory_item_price')), 500);
     /** @type {number[]} */productPagePrices = await Promise.all(
       priceElements.map(async (PriceEle) => {

@@ -7,13 +7,9 @@ const { expect, use, } = require('chai');
 var chaiAsPromised = require("chai-as-promised");
 use(chaiAsPromised);
 const {
-  initializeDriver, loginSuccess,
-  loginAttempt, users, getBtns, maybeSleep, getProductPageIventoryProps,
+  initializeDriver, getProductPageInventoryProps,
+  userLogins, testProductData,
 } = require('./utils');
-const { testProductData, password } = require('./testData');
-const {
-  standardUser
-} = users;
 /*
 * PRODUCT PAGE TESTS
 */
@@ -22,13 +18,12 @@ describe('product page functionality', () => {
   // /** @type {WebElement[]} */let addToCartButtons = null;
   /** type {import('./utils').ProductProperties} */
   
-  /** @type {ReturnType<getProductPageIventoryProps>} */ let inventoryProps;
+  /** @type {ReturnType<getProductPageInventoryProps>} */ let inventoryProps;
   before(async () => {
     // Initialize and login
     driver = await initializeDriver(Browser.CHROME);
-    await loginAttempt(standardUser, password, driver);
-    await loginSuccess(driver);
-    inventoryProps = getProductPageIventoryProps(driver);
+    await userLogins.standard(driver);
+    inventoryProps = getProductPageInventoryProps(driver);
   });
   it('has no counter on the shopping cart before items are added', async () => {
     const [cartCounter] = await driver.findElements(
