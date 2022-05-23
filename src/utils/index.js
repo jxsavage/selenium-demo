@@ -1,6 +1,7 @@
 const { Browser, Builder, WebDriver } = require('selenium-webdriver');
 const { Options } = require('selenium-webdriver/chrome');
-const { verifyAtShoppingCart, getAllRemoveFromCartBtns, getAllAddToCartBtns } = require('./cart');
+const { verifyAtShoppingCart, getAllRemoveFromCartBtns, getAllAddToCartBtns, getCartPageInventoryProps } = require('./cart');
+const { getCartCounter } = require('./helpers');
 const { userLogins, loginAttempt } = require('./login');
 const { openMenu, closeMenu, getAllMenuItemClicks } = require('./menu');
 const { verifyAtProductPage, getProductPageInventoryProps } = require('./product');
@@ -49,10 +50,12 @@ module.exports = {
   loginAttempt,
   openMenu,
   closeMenu,
+  getCartCounter,
   verifyAtShoppingCart,
   verifyAtProductPage,
   getAllMenuItemClicks,
   initializeDriver,
   getProductPageInventoryProps,
+  getCartPageInventoryProps,
   getBtns,
 }

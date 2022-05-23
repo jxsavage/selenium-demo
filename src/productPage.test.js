@@ -15,9 +15,6 @@ const {
 */
 describe('product page functionality', () => {
   /** @type {WebDriver} */let driver = null;
-  // /** @type {WebElement[]} */let addToCartButtons = null;
-  /** type {import('./utils').ProductProperties} */
-  
   /** @type {ReturnType<getProductPageInventoryProps>} */ let inventoryProps;
   before(async () => {
     // Initialize and login

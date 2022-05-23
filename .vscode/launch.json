@@ -39,6 +39,18 @@
       "skipFiles": [
         "<node_internals>/**"
       ],
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "testCart",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "run-script", "test:cart"
+    ],
+      "skipFiles": [
+        "<node_internals>/**"
+      ],
     }
   ]
 }

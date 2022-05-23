@@ -26,7 +26,7 @@ const getProductPropsFromEle = async (productEle) => {
 const getProductPageInventoryProps = async (driver) => {
   const productEles = await driver.wait(until.elementsLocated(
     By.className('inventory_item'),
-  ));
+  ), 500);
   const propsArray = await Promise.all(productEles.map(
     async (element) => {
       const props = await getProductPropsFromEle(element);

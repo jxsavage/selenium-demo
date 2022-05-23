@@ -1,4 +1,5 @@
 const { WebDriver, WebElement, By, until } = require("selenium-webdriver");
+const { priceEleToNumber, productBtnToId } = require("./helpers");
 const { testProductData } = require("./testData");
 
 /**
@@ -47,8 +48,45 @@ const verifyAtShoppingCart = async (driver, waitTimeMSOverride) => {
   await driver.wait(until.elementLocated(By.id('cart_contents_container')), waitTimeMS);
 }
 
+/**
+ * Get productId, BtnId, Btn, price, and can add can remove status.
+ * @param {WebElement} productEle product page product element.
+ */
+ const getProductPropsFromEle = async (productEle) => {
+
+  const [priceEle, productBtn, quantityStr] = await Promise.all([
+    await productEle.findElement(By.className('inventory_item_price')),
+    await productEle.findElement(By.className('cart_button')),
+    await productEle.findElement(By.className('cart_quantity')).getText(),
+  ]);
+  const [price, btnProps] = await Promise.all([
+    await priceEleToNumber(priceEle),
+    await productBtnToId(productBtn),
+  ]);
+  const quantity = Number(quantityStr);
+  return { ...btnProps, price, productBtn, quantity, }
+}
+
+/**
+ * 
+ * @param {WebDriver} driver 
+ * returns {Promise<ProductProperties>}
+ */
+ const getCartPageInventoryProps = async (driver) => {
+  const productEles = await driver.wait(until.elementsLocated(
+    By.className('cart_item'),
+  ), 500);
+  const propsArray = await Promise.all(productEles.map(
+    async (element) => {
+      const props = await getProductPropsFromEle(element);
+      return props;
+    }));
+  return propsArray;
+}
+
 module.exports = {
   verifyAtShoppingCart,
   getAllAddToCartBtns,
   getAllRemoveFromCartBtns,
+  getCartPageInventoryProps,
 }

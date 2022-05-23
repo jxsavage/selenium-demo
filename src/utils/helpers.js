@@ -37,6 +37,7 @@ const getCartCounter = async (driver) => {
   return count;
 }
 module.exports = {
+  getCartCounter,
   productBtnToId,
   priceEleToNumber,
 }
